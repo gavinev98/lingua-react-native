@@ -1,65 +1,59 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
+// Design tokens for the Lingua design system.
+// Keep these values in sync with the `@theme` block in `src/global.css` —
+// NativeWind utility classes read from global.css, while these JS values
+// are for the places NativeWind can't reach (StyleSheet exceptions like
+// SafeAreaView, Modal, shadows, and dynamic style objects).
 
-import '@/global.css';
+export const colors = {
+  // Brand / primary palette
+  purple: "#6C4EF5",
+  deepPurple: "#5B3BF6",
+  blue: "#4D8BFF",
+  green: "#21C16B",
 
-import { Platform } from 'react-native';
+  // Semantic
+  success: "#21C16B",
+  warning: "#FFC800",
+  streak: "#FF8A00",
+  error: "#FF4D4F",
+  info: "#4D8BFF",
 
-export const Colors = {
-  light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
-  },
-  dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
-  },
+  // Neutrals
+  textPrimary: "#0D132B",
+  textSecondary: "#6B7280",
+  border: "#E5E7EB",
+  surface: "#F6F7FB",
+  background: "#FFFFFF",
 } as const;
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
-
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
-
-export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
+export const fonts = {
+  regular: "Poppins-Regular",
+  medium: "Poppins-Medium",
+  semiBold: "Poppins-SemiBold",
+  bold: "Poppins-Bold",
 } as const;
 
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+export const fontAssets = {
+  "Poppins-Regular": require("@/assets/fonts/Poppins-Regular.ttf"),
+  "Poppins-Medium": require("@/assets/fonts/Poppins-Medium.ttf"),
+  "Poppins-SemiBold": require("@/assets/fonts/Poppins-SemiBold.ttf"),
+  "Poppins-Bold": require("@/assets/fonts/Poppins-Bold.ttf"),
+};
+
+type TextStyleToken = {
+  fontFamily: string;
+  fontSize: number;
+  lineHeight: number;
+};
+
+// Mirrors the H1-H4 / Body / Caption scale from the design system.
+export const typography: Record<string, TextStyleToken> = {
+  h1: { fontFamily: fonts.bold, fontSize: 32, lineHeight: 32 * 1.2 },
+  h2: { fontFamily: fonts.semiBold, fontSize: 24, lineHeight: 24 * 1.3 },
+  h3: { fontFamily: fonts.semiBold, fontSize: 20, lineHeight: 20 * 1.3 },
+  h4: { fontFamily: fonts.medium, fontSize: 16, lineHeight: 16 * 1.4 },
+  bodyLarge: { fontFamily: fonts.regular, fontSize: 16, lineHeight: 16 * 1.6 },
+  bodyMedium: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 14 * 1.6 },
+  bodySmall: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 13 * 1.6 },
+  caption: { fontFamily: fonts.regular, fontSize: 11, lineHeight: 11 * 1.4 },
+};
