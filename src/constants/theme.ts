@@ -56,4 +56,5 @@ export const typography: Record<string, TextStyleToken> = {
   bodyMedium: { fontFamily: fonts.regular, fontSize: 14, lineHeight: 14 * 1.6 },
   bodySmall: { fontFamily: fonts.regular, fontSize: 13, lineHeight: 13 * 1.6 },
   caption: { fontFamily: fonts.regular, fontSize: 11, lineHeight: 11 * 1.4 },
+  btnLabel: { fontFamily: fonts.semiBold, fontSize: 16, lineHeight: 16 * 1.5 },
 };
