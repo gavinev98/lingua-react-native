@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Text, View } from "react-native";
+import { ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { PrimaryButton } from "@/components/PrimaryButton";
@@ -46,7 +46,11 @@ export default function Onboarding() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
-      <View className="flex-1 px-6">
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 16 }}
+        showsVerticalScrollIndicator={false}
+      >
         <View className="flex-row items-center justify-center mt-4">
           <Image
             source={images.mascotLogo}
@@ -92,14 +96,13 @@ export default function Onboarding() {
           />
         </View>
 
-        <View className="flex-1" />
+      </ScrollView>
 
-        <View className="pb-4">
-          <PrimaryButton
-            label="Get Started"
-            onPress={() => router.push("/")}
-          />
-        </View>
+      <View className="px-6 pb-4 pt-2">
+        <PrimaryButton
+          label="Get Started"
+          onPress={() => router.push("/sign-up")}
+        />
       </View>
     </SafeAreaView>
   );
