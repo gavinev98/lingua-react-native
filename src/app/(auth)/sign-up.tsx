@@ -1,8 +1,10 @@
+import { useSignUp } from "@clerk/expo";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -18,6 +20,8 @@ import { SocialButton } from "@/components/SocialButton";
 import { VerificationModal } from "@/components/VerificationModal";
 import { images } from "@/constants/images";
 import { colors } from "@/constants/theme";
+import { useSocialAuth } from "@/hooks/useSocialAuth";
+import { getErrorMessage } from "@/lib/clerk-errors";
 
 export default function SignUp() {
   const router = useRouter();
@@ -25,6 +29,45 @@ export default function SignUp() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
+  const { signUp, fetchStatus } = useSignUp();
+  const { signInWith } = useSocialAuth();
+  const isFetching = fetchStatus === "fetching";
+
+  // Step 1: create the account and email a verification code.
+  const handleSignUp = async () => {
+    if (isFetching) return;
+    const { error } = await signUp.password({
+      emailAddress: email.trim(),
+      password,
+    });
+    if (error) {
+      Alert.alert("Couldn't sign up", getErrorMessage(error));
+      return;
+    }
+    const { error: sendError } = await signUp.verifications.sendEmailCode();
+    if (sendError) {
+      Alert.alert("Couldn't send code", getErrorMessage(sendError));
+      return;
+    }
+    setShowVerification(true);
+  };
+
+  // Step 2: verify the code and activate the session.
+  const handleVerify = async (code: string) => {
+    const { error } = await signUp.verifications.verifyEmailCode({ code });
+    if (error) {
+      Alert.alert("Invalid code", getErrorMessage(error));
+      return;
+    }
+    const { error: finalizeError } = await signUp.finalize({
+      navigate: () => router.replace("/"),
+    });
+    if (finalizeError) {
+      Alert.alert("Couldn't sign up", getErrorMessage(finalizeError));
+      return;
+    }
+    setShowVerification(false);
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
@@ -103,11 +146,14 @@ export default function SignUp() {
             />
           </View>
 
+          {/* Required by Clerk for web bot protection; invisible on native. */}
+          <View nativeID="clerk-captcha" />
+
           <View className="mt-6">
             <PrimaryButton
               label="Sign Up"
               showChevron={false}
-              onPress={() => setShowVerification(true)}
+              onPress={handleSignUp}
             />
           </View>
 
@@ -123,21 +169,21 @@ export default function SignUp() {
             <SocialButton
               icon={<Ionicons name="logo-google" size={20} color="#4285F4" />}
               label="Continue with Google"
-              onPress={() => {}}
+              onPress={() => signInWith("oauth_google")}
             />
             <SocialButton
               icon={
                 <Ionicons name="logo-facebook" size={20} color="#1877F2" />
               }
               label="Continue with Facebook"
-              onPress={() => {}}
+              onPress={() => signInWith("oauth_facebook")}
             />
             <SocialButton
               icon={
                 <Ionicons name="logo-apple" size={20} color={colors.textPrimary} />
               }
               label="Continue with Apple"
-              onPress={() => {}}
+              onPress={() => signInWith("oauth_apple")}
             />
           </View>
 
@@ -156,10 +202,7 @@ export default function SignUp() {
         visible={showVerification}
         email={email || "your email"}
         onClose={() => setShowVerification(false)}
-        onComplete={() => {
-          setShowVerification(false);
-          router.replace("/");
-        }}
+        onComplete={handleVerify}
       />
     </SafeAreaView>
   );

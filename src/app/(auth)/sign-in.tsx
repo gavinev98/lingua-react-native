@@ -1,8 +1,10 @@
+import { useSignIn } from "@clerk/expo";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { Link, useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -18,11 +20,46 @@ import { SocialButton } from "@/components/SocialButton";
 import { VerificationModal } from "@/components/VerificationModal";
 import { images } from "@/constants/images";
 import { colors } from "@/constants/theme";
+import { useSocialAuth } from "@/hooks/useSocialAuth";
+import { getErrorMessage } from "@/lib/clerk-errors";
 
 export default function SignIn() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [showVerification, setShowVerification] = useState(false);
+  const { signIn, fetchStatus } = useSignIn();
+  const { signInWith } = useSocialAuth();
+  const isFetching = fetchStatus === "fetching";
+
+  // Step 1: email the user a sign-in code, then open the code modal.
+  const handleSendCode = async () => {
+    if (isFetching) return;
+    const { error } = await signIn.emailCode.sendCode({
+      emailAddress: email.trim(),
+    });
+    if (error) {
+      Alert.alert("Couldn't log in", getErrorMessage(error));
+      return;
+    }
+    setShowVerification(true);
+  };
+
+  // Step 2: verify the code and activate the session.
+  const handleVerify = async (code: string) => {
+    const { error } = await signIn.emailCode.verifyCode({ code });
+    if (error) {
+      Alert.alert("Invalid code", getErrorMessage(error));
+      return;
+    }
+    const { error: finalizeError } = await signIn.finalize({
+      navigate: () => router.replace("/"),
+    });
+    if (finalizeError) {
+      Alert.alert("Couldn't log in", getErrorMessage(finalizeError));
+      return;
+    }
+    setShowVerification(false);
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
@@ -83,7 +120,7 @@ export default function SignIn() {
             <PrimaryButton
               label="Log In"
               showChevron={false}
-              onPress={() => setShowVerification(true)}
+              onPress={handleSendCode}
             />
           </View>
 
@@ -99,21 +136,21 @@ export default function SignIn() {
             <SocialButton
               icon={<Ionicons name="logo-google" size={20} color="#4285F4" />}
               label="Continue with Google"
-              onPress={() => {}}
+              onPress={() => signInWith("oauth_google")}
             />
             <SocialButton
               icon={
                 <Ionicons name="logo-facebook" size={20} color="#1877F2" />
               }
               label="Continue with Facebook"
-              onPress={() => {}}
+              onPress={() => signInWith("oauth_facebook")}
             />
             <SocialButton
               icon={
                 <Ionicons name="logo-apple" size={20} color={colors.textPrimary} />
               }
               label="Continue with Apple"
-              onPress={() => {}}
+              onPress={() => signInWith("oauth_apple")}
             />
           </View>
 
@@ -132,10 +169,7 @@ export default function SignIn() {
         visible={showVerification}
         email={email || "your email"}
         onClose={() => setShowVerification(false)}
-        onComplete={() => {
-          setShowVerification(false);
-          router.replace("/");
-        }}
+        onComplete={handleVerify}
       />
     </SafeAreaView>
   );
