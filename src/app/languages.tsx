@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useAuth } from "@clerk/expo";
 import { Image } from "expo-image";
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   Pressable,
@@ -25,7 +26,10 @@ export default function Languages() {
   const setSelectedLanguageId = useLanguageStore(
     (state) => state.setSelectedLanguageId,
   );
-  const [selectedId, setSelectedId] = useState<LanguageId>(savedLanguageId);
+  const { isLoaded, isSignedIn } = useAuth();
+  const [selectedId, setSelectedId] = useState<LanguageId>(
+    savedLanguageId ?? languages[0].id,
+  );
   const [query, setQuery] = useState("");
 
   const normalizedQuery = query.trim().toLowerCase();
@@ -34,6 +38,9 @@ export default function Languages() {
       language.name.toLowerCase().includes(normalizedQuery) ||
       language.nativeName.toLowerCase().includes(normalizedQuery),
   );
+
+  if (!isLoaded) return null;
+  if (!isSignedIn) return <Redirect href="/onboarding" />;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -45,7 +52,7 @@ export default function Languages() {
           {/* Header */}
           <View className="h-12 items-center justify-center">
             <Pressable
-              onPress={() => router.back()}
+              onPress={() => router.canGoBack() && router.back()}
               hitSlop={12}
               className="absolute left-0"
             >
@@ -118,7 +125,7 @@ export default function Languages() {
               label="Confirm"
               onPress={() => {
                 setSelectedLanguageId(selectedId);
-                router.back();
+                router.replace("/");
               }}
             />
           </View>
