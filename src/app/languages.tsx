@@ -16,15 +16,23 @@ import { PrimaryButton } from "@/components/PrimaryButton";
 import { images } from "@/constants/images";
 import { colors } from "@/constants/theme";
 import { languages } from "@/data/languages";
+import { useLanguageStore } from "@/store/language-store";
 import { LanguageId } from "@/types/learning";
 
 export default function Languages() {
   const router = useRouter();
-  const [selectedId, setSelectedId] = useState<LanguageId>("spanish");
+  const savedLanguageId = useLanguageStore((state) => state.selectedLanguageId);
+  const setSelectedLanguageId = useLanguageStore(
+    (state) => state.setSelectedLanguageId,
+  );
+  const [selectedId, setSelectedId] = useState<LanguageId>(savedLanguageId);
   const [query, setQuery] = useState("");
 
-  const visibleLanguages = languages.filter((language) =>
-    language.name.toLowerCase().includes(query.trim().toLowerCase()),
+  const normalizedQuery = query.trim().toLowerCase();
+  const visibleLanguages = languages.filter(
+    (language) =>
+      language.name.toLowerCase().includes(normalizedQuery) ||
+      language.nativeName.toLowerCase().includes(normalizedQuery),
   );
 
   return (
@@ -106,7 +114,13 @@ export default function Languages() {
           </View>
 
           <View className="mt-4">
-            <PrimaryButton label="Confirm" onPress={() => router.back()} />
+            <PrimaryButton
+              label="Confirm"
+              onPress={() => {
+                setSelectedLanguageId(selectedId);
+                router.back();
+              }}
+            />
           </View>
         </View>
 
